@@ -4,7 +4,7 @@ from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQu
 
 from config import BOT_TOKEN, ADMIN_IDS
 from database import db
-from handlers import handlers, WAITING_NAME, WAITING_PHONE, WAITING_TRACK_PHONE, WAITING_TRACK_CODE
+from handlers import handlers, WAITING_NAME, WAITING_PHONE, WAITING_TRACK_PHONE, WAITING_TRACK_CODE, WAITING_CHANNEL
 from scheduler import scheduler
 
 # Enable logging
@@ -46,16 +46,27 @@ def main():
         fallbacks=[MessageHandler(filters.Regex('^❌ Bekor qilish$'), handlers.start)],
     )
 
+    # Channels management conversation handler
+    channels_conv = ConversationHandler(
+        entry_points=[MessageHandler(filters.Regex('^📢 Kanallar$'), handlers.channels_management)],
+        states={
+            WAITING_CHANNEL: [MessageHandler(filters.TEXT & ~filters.COMMAND, handlers.handle_channel_input)],
+        },
+        fallbacks=[MessageHandler(filters.Regex('^❌ Bekor qilish$'), handlers.start)],
+    )
+
+
+
     # Add handlers
     application.add_handler(registration_conv)
     application.add_handler(track_code_conv)
+    application.add_handler(channels_conv)
     
     # Command handlers
     application.add_handler(CommandHandler('start', handlers.start))
     
     # Message handlers for menu buttons
     application.add_handler(MessageHandler(filters.Regex('^🔍 Trek kodini tekshirish$'), handlers.check_track_code))
-    application.add_handler(MessageHandler(filters.Regex('^💱 Valyuta kursi$'), handlers.check_currency))
     application.add_handler(MessageHandler(filters.Regex('^👤 Mening profilim$'), handlers.my_profile))
     
     # Admin handlers
@@ -63,6 +74,9 @@ def main():
     application.add_handler(MessageHandler(filters.Regex('^👥 Foydalanuvchilar$'), handlers.users_list))
     application.add_handler(MessageHandler(filters.Regex('^📊 Statistika$'), handlers.statistics))
     application.add_handler(MessageHandler(filters.Regex('^📤 Eksport$'), handlers.export_users))
+    
+    # Text message handler (must be last to avoid conflicts)
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handlers.handle_text_message))
     
     # Callback query handler
     application.add_handler(CallbackQueryHandler(handlers.handle_callback))

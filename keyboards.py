@@ -6,7 +6,7 @@ class Keyboards:
     def main_menu() -> ReplyKeyboardMarkup:
         """Oddiy foydalanuvchilar uchun asosiy menyu"""
         keyboard = [
-            [KeyboardButton("🔍 Trek kodini tekshirish"), KeyboardButton("💱 Valyuta kursi")],
+            [KeyboardButton("🔍 Trek kodini tekshirish")],
             [KeyboardButton("👤 Mening profilim")]
         ]
         return ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
@@ -26,8 +26,8 @@ class Keyboards:
         """Valyuta konverteri pastki menyusi"""
         keyboard = [
             [InlineKeyboardButton("💰 Valyuta tanlash", callback_data="choose_currency")],
-            [InlineKeyboardButton("⏰ Yuborish vaqtini belgilash", callback_data="set_send_time")],
-            [InlineKeyboardButton("📝 Post shabloni", callback_data="post_template")],
+            [InlineKeyboardButton("🚀 Test yuborish", callback_data="test_send")],
+            [InlineKeyboardButton("📅 Rejani tekshirish", callback_data="check_schedule")],
             [InlineKeyboardButton("🔙 Orqaga", callback_data="back_admin")]
         ]
         return InlineKeyboardMarkup(keyboard)
@@ -75,6 +75,63 @@ class Keyboards:
             [InlineKeyboardButton("✅ Tasdiqlash", callback_data="confirm")],
             [InlineKeyboardButton("❌ Bekor qilish", callback_data="cancel")]
         ]
+        return InlineKeyboardMarkup(keyboard)
+
+    @staticmethod
+    def currency_selection_keyboard(currencies: List[Dict[str, str]], selected_currencies: List[str] = None) -> InlineKeyboardMarkup:
+        """Valyuta tanlash klaviaturasi (checkbox'lar bilan)"""
+        if selected_currencies is None:
+            selected_currencies = []
+        
+        keyboard = []
+        for i in range(0, len(currencies), 2):
+            row = []
+            for j in range(2):
+                if i + j < len(currencies):
+                    curr = currencies[i + j]
+                    is_selected = curr['code'] in selected_currencies
+                    checkbox = "☑️" if is_selected else "☐"
+                    row.append(InlineKeyboardButton(
+                        f"{checkbox} {curr['code']} - {curr['name'][:15]}...",
+                        callback_data=f"toggle_currency_{curr['code']}"
+                    ))
+            keyboard.append(row)
+        
+        keyboard.append([InlineKeyboardButton("✅ Saqlash", callback_data="save_currencies")])
+        keyboard.append([InlineKeyboardButton("🔙 Orqaga", callback_data="currency_converter")])
+        return InlineKeyboardMarkup(keyboard)
+
+
+    @staticmethod
+    def test_send_keyboard() -> InlineKeyboardMarkup:
+        """Test yuborish klaviaturasi"""
+        keyboard = [
+            [InlineKeyboardButton("🚀 Hozir yuborish (Test)", callback_data="test_send")],
+            [InlineKeyboardButton("🔙 Orqaga", callback_data="currency_converter")]
+        ]
+        return InlineKeyboardMarkup(keyboard)
+
+
+    @staticmethod
+    def user_currencies_keyboard(selected_currencies: List[str]) -> InlineKeyboardMarkup:
+        """Foydalanuvchilar uchun valyuta klaviaturasi"""
+        keyboard = [
+            [InlineKeyboardButton("📊 Barcha valyutalarni ko'rish", callback_data="show_all_currencies")]
+        ]
+        
+        # Add individual currency buttons as well
+        for i in range(0, len(selected_currencies), 2):
+            row = []
+            for j in range(2):
+                if i + j < len(selected_currencies):
+                    curr_code = selected_currencies[i + j]
+                    row.append(InlineKeyboardButton(
+                        curr_code,
+                        callback_data=f"show_currency_{curr_code}"
+                    ))
+            keyboard.append(row)
+        
+        keyboard.append([InlineKeyboardButton("🔙 Asosiy menyu", callback_data="back_main")])
         return InlineKeyboardMarkup(keyboard)
 
 keyboards = Keyboards()

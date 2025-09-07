@@ -2,10 +2,10 @@ import os
 from typing import List
 
 # Bot configuration
-BOT_TOKEN = os.getenv('BOT_TOKEN', '6322903064:AAFC1ap-kk8Rbw9EZW30vBoyi42GdRvTPvg')
+BOT_TOKEN = os.getenv('BOT_TOKEN', '8212230200:AAE61LLTlS86f2gUOaQ4-cDCKMn6u8t6MEw')
 
 # Admin configuration - Add your Telegram user ID here
-ADMIN_IDS: List[int] = [1543822491]  # Replace with actual admin user IDs
+ADMIN_IDS: List[int] = [6237238997]  # Replace with actual admin user IDs
 
 # Database configuration
 DATABASE_PATH = 'bot_database.db'

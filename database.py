@@ -29,6 +29,7 @@ class Database:
                 CREATE TABLE IF NOT EXISTS settings (
                     id INTEGER PRIMARY KEY,
                     currency TEXT DEFAULT 'USD',
+                    selected_currencies TEXT DEFAULT 'USD',
                     send_time TEXT DEFAULT '09:00',
                     template TEXT DEFAULT '',
                     channels TEXT DEFAULT ''
@@ -37,9 +38,9 @@ class Database:
             
             # Insert default settings if not exists
             await db.execute('''
-                INSERT OR IGNORE INTO settings (id, currency, send_time, template, channels)
-                VALUES (1, ?, ?, ?, '')
-            ''', (DEFAULT_CURRENCY, DEFAULT_SEND_TIME, DEFAULT_TEMPLATE))
+                INSERT OR IGNORE INTO settings (id, currency, selected_currencies, send_time, template, channels)
+                VALUES (1, ?, ?, ?, ?, '')
+            ''', (DEFAULT_CURRENCY, DEFAULT_CURRENCY, DEFAULT_SEND_TIME, DEFAULT_TEMPLATE))
             
             await db.commit()
 
@@ -119,18 +120,24 @@ class Database:
 
     async def get_settings(self) -> Dict[str, Any]:
         """Get bot settings"""
-        async with aiosqlite.connect(self.db_path) as db:
-            db.row_factory = aiosqlite.Row
-            async with db.execute('SELECT * FROM settings WHERE id = 1') as cursor:
-                row = await cursor.fetchone()
-                return dict(row) if row else {}
+        try:
+            async with aiosqlite.connect(self.db_path) as db:
+                db.row_factory = aiosqlite.Row
+                async with db.execute('SELECT * FROM settings WHERE id = 1') as cursor:
+                    row = await cursor.fetchone()
+                    result = dict(row) if row else {}
+                    print(f"Database settings result: {result}")
+                    return result
+        except Exception as e:
+            print(f"Error getting settings: {e}")
+            return {}
 
     async def update_settings(self, **kwargs) -> bool:
         """Update bot settings"""
         try:
             async with aiosqlite.connect(self.db_path) as db:
                 for key, value in kwargs.items():
-                    if key in ['currency', 'send_time', 'template', 'channels']:
+                    if key in ['currency', 'selected_currencies', 'send_time', 'template', 'channels']:
                         await db.execute(f'''
                             UPDATE settings SET {key} = ? WHERE id = 1
                         ''', (value,))
